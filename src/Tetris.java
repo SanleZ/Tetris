@@ -5,17 +5,17 @@ import java.awt.event.*;
 
 public class Tetris extends JFrame {
     private int dimX = 10;
-    private int dimY = 18;
+    private int dimY = 20;
     private int prevX = 0;
     private int initX = dimX / 2 - 1;
     private int initY = -1;
+    private int CellSize = 30;
     private boolean startGame = false;
     private boolean bottomEdge = false;
     private boolean gameOver = false;
     private int selectedFigure = 0;
     private int nextFigure = 0;
     private int[][] arr;
-    //rem	private int[][] prevArr;
     private int[][] nextArr;
     private int[][] cashArr;
     private boolean moveX = false;
@@ -27,25 +27,23 @@ public class Tetris extends JFrame {
     private Tetris() {
         super("TETRIS");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setSize(630, 800);
+        setSize(CellSize*18, CellSize*22);
+        setLocationRelativeTo(null);
         GamePanel gp = new GamePanel();
-        // gp.setPreferredSize(new Dimension(dimX*40,dimY*40));
-        gp.setBorder(new LineBorder(Color.GRAY, 2));
-        gp.setBounds(10, 10, dimX * 40, dimY * 40);
-        add(gp);
+        gp.setBounds(10, 10, dimX * CellSize + 1, dimY * CellSize + 1);
+        getContentPane().add(gp);
         nextFigurePanel nfp = new nextFigurePanel();
         nfp.setBorder(new LineBorder(Color.GRAY, 2));
-        // nfp.setPreferredSize(new Dimension(130,130));
-        nfp.setBounds(dimX * 40 + 30, 10, 160, 120);
+        nfp.setBounds(dimX * CellSize + 30, 10, 160, 120);
         add(nfp);
         JButton startB = new JButton("START");
         startB.addActionListener(new StartGame());
-        startB.setBounds(dimX * 40 + 60, 200, 80, 40);
+        startB.setBounds(dimX * CellSize + 60, 200, 80, CellSize);
         add(startB);
-        setLayout(null);
+        setLayout(new CardLayout(10,10));
         KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
         manager.addKeyEventDispatcher(new MyDispatcher());
-        // pack();
+       pack();
         setVisible(true);
     }
 
@@ -95,7 +93,6 @@ public class Tetris extends JFrame {
                 }
             }
         }
-        // repaint();
     }
 
     private void checkField() {
@@ -120,10 +117,8 @@ public class Tetris extends JFrame {
     }
 
     private void moveF() {
-        // if (collision(initX, initY) && moveX) initX=prevX;
         if (!bottomEdge && !collision(initX, initY)) {
             clearGameField();
-            // moveX = false;
             for (int i = 0; i < arr.length; i++) {
                 for (int j = 0; j < arr.length; j++) {
                     if (arr[i][j] == 1) {
@@ -134,7 +129,6 @@ public class Tetris extends JFrame {
                 }
             }
         } else {
-            // moveX = false;
             dropping();
             initY = -1;
             initX = dimX / 2 - 1;
@@ -170,8 +164,7 @@ public class Tetris extends JFrame {
         }
     }
 
-    //rem public void init() {
-    //rem }
+
     private class MyDispatcher implements KeyEventDispatcher {
         private int[][] prevArr;
 
@@ -262,12 +255,14 @@ public class Tetris extends JFrame {
 
     private class GamePanel extends JPanel {
         public void paintComponent(Graphics g) {
-            // g.setColor(Color.GRAY);
-            // for(int i=1;i<dimX;i++) g.drawLine(40*i,0,40*i,dimY*40);
-            // for(int i=1;i<dimY;i++) g.drawLine(0,40*i,dimX*40,40*i);
+
+//заполнение игрового поля серым
+            g.setColor(Color.GRAY);
+            g.fillRect(0, 0, this.getWidth(), this.getHeight());
+
+//перерисовка движущейся фигуры
             for (int i = 0; i < dimX; i++) {
                 for (int j = 0; j < dimY; j++) {
-                    // g.setColor(Color.BLACK);
                     switch (selectedFigure) {
                         case 0:
                             g.setColor(Color.GREEN);
@@ -279,7 +274,7 @@ public class Tetris extends JFrame {
                             g.setColor(Color.YELLOW);
                             break;
                         case 3:
-                            g.setColor(Color.GRAY);
+                            g.setColor(Color.PINK);
                             break;
                         case 4:
                             g.setColor(Color.BLUE);
@@ -297,8 +292,13 @@ public class Tetris extends JFrame {
                             g.setColor(Color.ORANGE);
                             break;
                     }
-                    if (gameField[i][j] == 1)
-                        g.fillRect(i * 40, j * 40, 40, 40);
+
+                    if (gameField[i][j] == 1) {
+                        g.fillRect(i * CellSize, j * CellSize, CellSize, CellSize);
+                        g.setColor(Color.BLACK);
+                        g.drawRect(i * CellSize, j * CellSize, CellSize, CellSize);
+                    }
+// перерисовка застывших вигур
                     if (cashField[i][j] > 0) {
                         switch (cashField[i][j]) {
                             case 1:
@@ -311,7 +311,7 @@ public class Tetris extends JFrame {
                                 g.setColor(Color.YELLOW);
                                 break;
                             case 4:
-                                g.setColor(Color.GRAY);
+                                g.setColor(Color.PINK);
                                 break;
                             case 5:
                                 g.setColor(Color.BLUE);
@@ -329,9 +329,9 @@ public class Tetris extends JFrame {
                                 g.setColor(Color.ORANGE);
                                 break;
                         }
-                        g.fillRect(i * 40, j * 40, 40, 40);
+                        g.fillRect(i * CellSize, j * CellSize, CellSize, CellSize);
                         g.setColor(Color.BLACK);
-                        g.drawRect(i * 40, j * 40, 40, 40);
+                        g.drawRect(i * CellSize, j * CellSize, CellSize, CellSize);
                     }
                 }
             }
