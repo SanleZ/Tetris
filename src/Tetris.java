@@ -27,26 +27,28 @@ public class Tetris extends JFrame {
     private Tetris() {
         super("TETRIS");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setSize(CellSize*18, CellSize*22);
+        setSize(CellSize*18, CellSize*23);
         setLocationRelativeTo(null);
+        initComponents();
+        setLayout(null);
+        KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        manager.addKeyEventDispatcher(new MyDispatcher());
+        setVisible(true);
+    }
+    private void initComponents(){
         GamePanel gp = new GamePanel();
         gp.setBounds(10, 10, dimX * CellSize + 1, dimY * CellSize + 1);
-        getContentPane().add(gp);
+        this.add(gp);
         nextFigurePanel nfp = new nextFigurePanel();
-        nfp.setBorder(new LineBorder(Color.GRAY, 2));
+        nfp.add(new JLabel("Next figure"));
+        //nfp.setBorder(new LineBorder(Color.GRAY, 2));
         nfp.setBounds(dimX * CellSize + 30, 10, 160, 120);
-        add(nfp);
+        this.add(nfp);
         JButton startB = new JButton("START");
         startB.addActionListener(new StartGame());
         startB.setBounds(dimX * CellSize + 60, 200, 80, CellSize);
-        add(startB);
-        setLayout(new CardLayout(10,10));
-        KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-        manager.addKeyEventDispatcher(new MyDispatcher());
-       pack();
-        setVisible(true);
+        this.add(startB);
     }
-
     private void removeX(int jj) {
         for (int i = 0; i < dimX; i++) {
             cashField[i][jj] = 0;
@@ -115,19 +117,21 @@ public class Tetris extends JFrame {
             }
         }
     }
-
+    private void checkBottomEdgeCollision(){
+        for (int i = 0; i < arr.length; i++) {
+            for (int j = 0; j < arr.length; j++) {
+                if (arr[i][j] == 1) {
+                    gameField[i + initX][j + initY] = arr[i][j];
+                    if (gameField[i + initX][dimY - 1] == 1)
+                        bottomEdge = true;
+                }
+            }
+        }
+    }
     private void moveF() {
         if (!bottomEdge && !collision(initX, initY)) {
             clearGameField();
-            for (int i = 0; i < arr.length; i++) {
-                for (int j = 0; j < arr.length; j++) {
-                    if (arr[i][j] == 1) {
-                        gameField[i + initX][j + initY] = arr[i][j];
-                        if (gameField[i + initX][dimY - 1] == 1)
-                            bottomEdge = true;
-                    }
-                }
-            }
+            checkBottomEdgeCollision();
         } else {
             dropping();
             initY = -1;
@@ -152,15 +156,7 @@ public class Tetris extends JFrame {
         if (!collision(initX, initY)) {
             clearGameField();
             moveX = false;
-            for (int i = 0; i < arr.length; i++) {
-                for (int j = 0; j < arr.length; j++) {
-                    if (arr[i][j] == 1) {
-                        gameField[i + initX][j + initY] = arr[i][j];
-                        if (gameField[i + initX][dimY - 1] == 1)
-                            bottomEdge = true;
-                    }
-                }
-            }
+            checkBottomEdgeCollision();
         }
     }
 
@@ -209,43 +205,15 @@ public class Tetris extends JFrame {
     }
 
     private class nextFigurePanel extends JPanel {
-        public void paintComponent(Graphics g) {
+        public void paintComponent(Graphics gr) {
             if (startGame) {
                 for (int i = 0; i < nextArr.length; i++) {
                     for (int j = 0; j < nextArr.length; j++) {
-                        switch (nextFigure) {
-                            case 0:
-                                g.setColor(Color.GREEN);
-                                break;
-                            case 1:
-                                g.setColor(Color.RED);
-                                break;
-                            case 2:
-                                g.setColor(Color.YELLOW);
-                                break;
-                            case 3:
-                                g.setColor(Color.GRAY);
-                                break;
-                            case 4:
-                                g.setColor(Color.BLUE);
-                                break;
-                            case 5:
-                                g.setColor(Color.MAGENTA);
-                                break;
-                            case 6:
-                                g.setColor(Color.CYAN);
-                                break;
-                            case 7:
-                                g.setColor(Color.BLACK);
-                                break;
-                            default:
-                                g.setColor(Color.ORANGE);
-                                break;
-                        }
+                        switchColorOfFigure(nextFigure, gr);
                         if (nextArr[i][j] == 1) {
-                            g.fillRect(i * 30 + 30, j * 30 + 10, 30, 30);
-                            g.setColor(Color.BLACK);
-                            g.drawRect(i * 30 + 30, j * 30 + 10, 30, 30);
+                            gr.fillRect(i * 20 + 50, j * 20 + 30, 20, 20);
+                            gr.setColor(Color.BLACK);
+                            gr.drawRect(i * 20 + 50, j * 20 + 30, 20, 20);
                         }
                     }
                 }
@@ -253,85 +221,61 @@ public class Tetris extends JFrame {
         }
     }
 
+    private void switchColorOfFigure(int nextF, Graphics g) {
+        switch (nextF) {
+            case 0:
+                g.setColor(Color.GREEN);
+                break;
+            case 1:
+                g.setColor(Color.RED);
+                break;
+            case 2:
+                g.setColor(Color.YELLOW);
+                break;
+            case 3:
+                g.setColor(Color.PINK);
+                break;
+            case 4:
+                g.setColor(Color.BLUE);
+                break;
+            case 5:
+                g.setColor(Color.MAGENTA);
+                break;
+            case 6:
+                g.setColor(Color.CYAN);
+                break;
+            case 7:
+                g.setColor(Color.BLACK);
+                break;
+            default:
+                g.setColor(Color.ORANGE);
+                break;
+        }
+    }
+
     private class GamePanel extends JPanel {
-        public void paintComponent(Graphics g) {
+        public void paintComponent(Graphics gr) {
 
 //заполнение игрового поля серым
-            g.setColor(Color.GRAY);
-            g.fillRect(0, 0, this.getWidth(), this.getHeight());
+            gr.setColor(Color.GRAY);
+            gr.fillRect(0, 0, this.getWidth(), this.getHeight());
 
 //перерисовка движущейся фигуры
             for (int i = 0; i < dimX; i++) {
                 for (int j = 0; j < dimY; j++) {
-                    switch (selectedFigure) {
-                        case 0:
-                            g.setColor(Color.GREEN);
-                            break;
-                        case 1:
-                            g.setColor(Color.RED);
-                            break;
-                        case 2:
-                            g.setColor(Color.YELLOW);
-                            break;
-                        case 3:
-                            g.setColor(Color.PINK);
-                            break;
-                        case 4:
-                            g.setColor(Color.BLUE);
-                            break;
-                        case 5:
-                            g.setColor(Color.MAGENTA);
-                            break;
-                        case 6:
-                            g.setColor(Color.CYAN);
-                            break;
-                        case 7:
-                            g.setColor(Color.BLACK);
-                            break;
-                        default:
-                            g.setColor(Color.ORANGE);
-                            break;
-                    }
+                    switchColorOfFigure(selectedFigure, gr);
 
                     if (gameField[i][j] == 1) {
-                        g.fillRect(i * CellSize, j * CellSize, CellSize, CellSize);
-                        g.setColor(Color.BLACK);
-                        g.drawRect(i * CellSize, j * CellSize, CellSize, CellSize);
+                        gr.fillRect(i * CellSize, j * CellSize, CellSize, CellSize);
+                        gr.setColor(Color.BLACK);
+                        gr.drawRect(i * CellSize, j * CellSize, CellSize, CellSize);
                     }
 // перерисовка застывших вигур
                     if (cashField[i][j] > 0) {
-                        switch (cashField[i][j]) {
-                            case 1:
-                                g.setColor(Color.GREEN);
-                                break;
-                            case 2:
-                                g.setColor(Color.RED);
-                                break;
-                            case 3:
-                                g.setColor(Color.YELLOW);
-                                break;
-                            case 4:
-                                g.setColor(Color.PINK);
-                                break;
-                            case 5:
-                                g.setColor(Color.BLUE);
-                                break;
-                            case 6:
-                                g.setColor(Color.MAGENTA);
-                                break;
-                            case 7:
-                                g.setColor(Color.CYAN);
-                                break;
-                            case 8:
-                                g.setColor(Color.BLACK);
-                                break;
-                            default:
-                                g.setColor(Color.ORANGE);
-                                break;
-                        }
-                        g.fillRect(i * CellSize, j * CellSize, CellSize, CellSize);
-                        g.setColor(Color.BLACK);
-                        g.drawRect(i * CellSize, j * CellSize, CellSize, CellSize);
+                        switchColorOfFigure(cashField[i][j]-1,gr);
+                        gr.fillRect(i * CellSize, j * CellSize, CellSize, CellSize);
+                        gr.setColor(Color.BLACK);
+                        gr.drawRect(i * CellSize, j * CellSize, CellSize, CellSize);
                     }
                 }
             }
